@@ -19,6 +19,14 @@ public interface McpClientManager {
     Mono<McpAsyncClient> connect(McpServer mcpServer);
 
     /**
+     * 根据 serverId 获取已连接的 MCP 客户端
+     *
+     * @param serverId 服务ID
+     * @return 已连接的 MCP 客户端
+     */
+    Mono<McpAsyncClient> getClient(String serverId);
+
+    /**
      * 断开连接
      */
     void disconnect(String serverId);

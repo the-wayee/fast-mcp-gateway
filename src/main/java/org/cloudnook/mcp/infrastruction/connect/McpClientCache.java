@@ -37,6 +37,15 @@ public class McpClientCache implements McpClientManager {
     }
 
     @Override
+    public Mono<McpAsyncClient> getClient(String serverId) {
+        Mono<McpAsyncClient> mono = CLIENTS_HOLDER.get(serverId);
+        if (mono == null) {
+            return Mono.error(new BusinessException("服务未连接: " + serverId));
+        }
+        return mono;
+    }
+
+    @Override
     public void disconnect(String serverId) {
         Mono<McpAsyncClient> mono = CLIENTS_HOLDER.remove(serverId);
         if (mono != null) {

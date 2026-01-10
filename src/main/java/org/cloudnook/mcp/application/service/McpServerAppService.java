@@ -1,10 +1,11 @@
 package org.cloudnook.mcp.application.service;
 
-import jakarta.annotation.Resource;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudnook.mcp.domain.model.server.McpServer;
 import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
+import org.cloudnook.mcp.domain.service.resource.McpResourceService;
 import org.cloudnook.mcp.domain.service.server.McpManagerService;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.cloudnook.mcp.infrastruction.utils.GeneratorUtil;
@@ -27,6 +28,11 @@ public class McpServerAppService {
      * MCP 服务管理服务
      */
     private McpManagerService mcpManagerService;
+
+    /**
+     * MCP 资源查询服务
+     */
+    private McpResourceService mcpResourceService;
 
     /**
      * 注册服务
@@ -54,7 +60,6 @@ public class McpServerAppService {
      * 注销服务
      */
     public McpServer unregisterServer(String serverName, String serverId) {
-
         return mcpManagerService.unregister(serverName, serverId);
     }
 
@@ -72,5 +77,36 @@ public class McpServerAppService {
         return mcpManagerService.getAllServers();
     }
 
+    // ==================== 资源查询方法 ====================
 
+    /**
+     * 获取 Server 的 Tools 列表
+     *
+     * @param serverId 服务ID
+     * @return Tools 列表
+     */
+    public Mono<McpSchema.ListToolsResult> listServerTools(String serverId) {
+        return mcpResourceService.listTools(serverId);
+    }
+
+    /**
+     * 获取 Server 的 Resources 列表
+     *
+     * @param serverId 服务ID
+     * @return Resources 列表
+     */
+    public Mono<McpSchema.ListResourcesResult> listServerResources(String serverId) {
+        return mcpResourceService.listResources(serverId);
+    }
+
+    /**
+     * 获取 Server 的 Prompts 列表
+     *
+     * @param serverId 服务ID
+     * @return Prompts 列表
+     */
+    public Mono<McpSchema.ListPromptsResult> listServerPrompts(String serverId) {
+        return mcpResourceService.listPrompts(serverId);
+    }
 }
+

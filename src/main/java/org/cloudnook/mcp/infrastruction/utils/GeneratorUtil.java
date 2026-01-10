@@ -41,7 +41,14 @@ public class GeneratorUtil {
         } catch (NoSuchAlgorithmException e) {
             // 降级方案：使用简单的 hashCode
             log.warn("SHA-256 算法不可用，使用 hashCode 生成 serverId", e);
-            return String.valueOf((name + ":" + endpoint).hashCode());
+            return String.valueOf((name + "::" + endpoint).hashCode());
         }
+    }
+
+    /**
+     * 生成唯一的调用 ID
+     */
+    public static String generateInvocationId() {
+        return "inv-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 10000);
     }
 }

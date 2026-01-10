@@ -33,9 +33,8 @@ public class McpServerController {
      * 注销服务
      */
     @DeleteMapping
-    public Result<Boolean> unregister(@RequestParam String serverName, @RequestParam String serverId) {
-        boolean result = mcpServerAppService.unregisterServer(serverName, serverId);
-        return Result.success(result);
+    public Result<McpServer> unregister(@RequestParam String serverName, @RequestParam String serverId) {
+        return Result.success(mcpServerAppService.unregisterServer(serverName, serverId));
     }
 
     /**

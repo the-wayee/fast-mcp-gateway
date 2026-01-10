@@ -59,18 +59,23 @@ public class McpMemoryRegister implements McpRegister {
     }
 
     @Override
-    public boolean unregister(String serverName, String serverId) {
+    public McpServer unregister(String serverName, String serverId) {
         if (serverName == null || serverId == null) {
             throw new BusinessException("服务名称或服务ID不能为空");
         }
 
-        // 使用 compute 处理移除逻辑
-        boolean[] removed = {false};
-        MCP_SERVER_HOLDER.computeIfPresent(serverName, (key, servers) -> {
-            boolean result = servers.removeIf(server -> serverId.equals(server.getId()));
-            removed[0] = result;
+        // 使用 AtomicReference 保存被移除的服务实例
+        final McpServer[] removedServer = {null};
 
-            if (result) {
+        MCP_SERVER_HOLDER.computeIfPresent(serverName, (key, servers) -> {
+            // 先查找要移除的服务
+            Optional<McpServer> serverToRemove = servers.stream()
+                    .filter(server -> serverId.equals(server.getId()))
+                    .findFirst();
+
+            if (serverToRemove.isPresent()) {
+                removedServer[0] = serverToRemove.get();
+                servers.remove(removedServer[0]);
                 log.info("成功注销服务: 服务名称={}, 服务ID={}", serverName, serverId);
                 // 如果列表为空，返回 null 以移除该 key
                 return servers.isEmpty() ? null : servers;
@@ -79,12 +84,12 @@ public class McpMemoryRegister implements McpRegister {
             throw new BusinessException("服务未找到: " + serverId);
         });
 
-        // 如果服务名称不存在
-        if (!removed[0]) {
+        // 如果服务名称不存在或服务未找到
+        if (removedServer[0] == null) {
             throw new BusinessException("服务未找到: " + serverName);
         }
 
-        return removed[0];
+        return removedServer[0];
     }
 
     @Override

@@ -8,6 +8,8 @@ import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * @Author: the-way
  * @Verson: v1.0
@@ -47,5 +49,36 @@ public class McpManagerService {
                     // 连接失败
                     return Mono.just(Result.error(mcpServer.getName() + " 连接失败"));
                 });
+    }
+
+    /**
+     * 注销服务
+     */
+    public McpServer unregister(String serverName, String serverId) {
+        // 断开连接
+        mcpClientManager.disconnect(serverId);
+
+        // 注销服务
+        return mcpRegister.unregister(serverName, serverId);
+    }
+
+    /**
+     * 获取服务详情
+     *
+     * @param serverName 服务名称
+     * @param serverId   服务ID
+     * @return 服务实例
+     */
+    public McpServer getServer(String serverName, String serverId) {
+        return mcpRegister.getServer(serverName, serverId);
+    }
+
+    /**
+     * 获取所有服务
+     *
+     * @return 所有服务实例列表
+     */
+    public List<McpServer> getAllServers() {
+        return mcpRegister.getAllServers();
     }
 }

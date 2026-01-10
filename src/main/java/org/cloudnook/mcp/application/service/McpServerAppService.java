@@ -6,16 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.cloudnook.mcp.domain.model.server.McpServer;
 import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
 import org.cloudnook.mcp.domain.service.server.McpManagerService;
-import org.cloudnook.mcp.domain.service.server.McpRegister;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.cloudnook.mcp.infrastruction.utils.GeneratorUtil;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
@@ -28,10 +24,8 @@ import java.util.List;
 public class McpServerAppService {
 
     /**
-     * 注入注册中心接口（通过配置动态选择实现）
+     * MCP 服务管理服务
      */
-    private McpRegister mcpRegister;
-
     private McpManagerService mcpManagerService;
 
     /**
@@ -59,22 +53,23 @@ public class McpServerAppService {
     /**
      * 注销服务
      */
-    public boolean unregisterServer(String serverName, String serverId) {
-        return mcpRegister.unregister(serverName, serverId);
+    public McpServer unregisterServer(String serverName, String serverId) {
+
+        return mcpManagerService.unregister(serverName, serverId);
     }
 
     /**
      * 获取服务详情
      */
     public McpServer getServer(String serverName, String serverId) {
-        return mcpRegister.getServer(serverName, serverId);
+        return mcpManagerService.getServer(serverName, serverId);
     }
 
     /**
      * 获取所有服务
      */
     public List<McpServer> getAllServers() {
-        return mcpRegister.getAllServers();
+        return mcpManagerService.getAllServers();
     }
 
 

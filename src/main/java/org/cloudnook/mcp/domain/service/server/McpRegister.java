@@ -25,7 +25,7 @@ public interface McpRegister {
      * @param serverId   服务ID
      * @return 注销是否成功
      */
-    boolean unregister(String serverName, String serverId);
+    McpServer unregister(String serverName, String serverId);
 
     /**
      * 根据服务名称和服务ID查询

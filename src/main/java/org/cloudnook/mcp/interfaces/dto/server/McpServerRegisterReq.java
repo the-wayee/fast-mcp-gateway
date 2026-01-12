@@ -19,6 +19,11 @@ public class McpServerRegisterReq {
     private String name;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 协议类型
      */
     private McpTransportType transportType;

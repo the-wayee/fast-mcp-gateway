@@ -42,7 +42,7 @@ public class McpManagerService {
                         mcpRegister.register(mcpServer);
                         return Mono.just(Result.<McpServer>success(mcpServer));
                     }catch (Exception e) {
-                        return Mono.just(Result.<McpServer>error(mcpServer.getName() + " 注册失败"));
+                        return Mono.just(Result.<McpServer>error(e.getMessage()));
                     }
                 })
                 .onErrorResume(e -> {

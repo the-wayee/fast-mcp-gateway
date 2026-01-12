@@ -4,11 +4,13 @@ import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.cloudnook.mcp.application.service.McpServerAppService;
 import org.cloudnook.mcp.domain.model.server.McpServer;
+import org.cloudnook.mcp.domain.model.shared.McpTransportType;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -83,6 +85,14 @@ public class McpServerController {
     public Mono<Result<McpSchema.ListPromptsResult>> listPrompts(@PathVariable String serverId) {
         return mcpServerAppService.listServerPrompts(serverId)
                 .map(Result::success);
+    }
+
+    /**
+     * 获取传输类型
+     */
+    @GetMapping("/protocols")
+    public Result<List<McpTransportType>> getTransportTypes() {
+        return Result.success(Arrays.asList(McpTransportType.values()));
     }
 }
 

@@ -24,6 +24,11 @@ public class McpServer {
     private String name;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 服务状态
      */
     private McpServerStatus status;

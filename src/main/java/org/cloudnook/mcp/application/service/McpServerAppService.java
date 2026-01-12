@@ -48,6 +48,7 @@ public class McpServerAppService {
         McpServer mcpServer = McpServer.builder()
                 .id(serverId)
                 .name(request.getName())
+                .description(request.getDescription())
                 .transportType(request.getTransportType())
                 .endpoint(request.getEndpoint())
                 .status(McpServerStatus.ACTIVE).build();

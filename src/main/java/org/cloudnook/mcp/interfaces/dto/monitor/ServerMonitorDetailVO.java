@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
+import org.cloudnook.mcp.domain.metrics.model.McpServerMetrics;
 
 /**
  * 服务监控数据详情版 VO

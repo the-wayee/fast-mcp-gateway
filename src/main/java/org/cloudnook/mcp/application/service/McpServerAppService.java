@@ -2,14 +2,14 @@ package org.cloudnook.mcp.application.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
-import org.cloudnook.mcp.domain.model.server.McpServer;
-import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
-import org.cloudnook.mcp.domain.service.server.McpManagerService;
-import org.cloudnook.mcp.domain.service.server.McpMetricsRepository;
-import org.cloudnook.mcp.domain.service.server.McpRegister;
-import org.cloudnook.mcp.infrastruction.common.result.Result;
-import org.cloudnook.mcp.infrastruction.utils.GeneratorUtil;
+import org.cloudnook.mcp.domain.metrics.model.McpServerMetrics;
+import org.cloudnook.mcp.domain.server.model.McpServer;
+import org.cloudnook.mcp.domain.server.model.McpServerStatus;
+import org.cloudnook.mcp.domain.metrics.repository.McpMetricsRepository;
+import org.cloudnook.mcp.domain.server.service.McpRegister;
+import org.cloudnook.mcp.domain.server.service.McpServerDomainService;
+import org.cloudnook.mcp.infrastructure.common.result.Result;
+import org.cloudnook.mcp.infrastructure.utils.GeneratorUtil;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerDetailVO;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerMonitorSummaryVO;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
@@ -19,8 +19,9 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 /**
- * MCP 服务管理应用服务
- * 位于应用层，负责编排领域服务
+ * MCP Server 应用服务
+ * 位于应用层，负责服务管理功能
+ * 依赖 domain/server + domain/metrics
  */
 @Slf4j
 @Service
@@ -28,9 +29,9 @@ import java.util.List;
 public class McpServerAppService {
 
     /**
-     * MCP 服务管理服务
+     * MCP Server 领域服务
      */
-    private McpManagerService mcpManagerService;
+    private McpServerDomainService mcpServerDomainService;
 
     /**
      * MCP 监控指标仓储
@@ -63,28 +64,28 @@ public class McpServerAppService {
                 .status(McpServerStatus.ACTIVE).build();
 
         // 3. 注册到注册中心
-        return mcpManagerService.register(mcpServer);
+        return mcpServerDomainService.register(mcpServer);
     }
 
     /**
      * 注销服务
      */
     public McpServer unregisterServer(String serverName, String serverId) {
-        return mcpManagerService.unregister(serverName, serverId);
+        return mcpServerDomainService.unregister(serverName, serverId);
     }
 
     /**
      * 获取服务详情
      */
     public McpServer getServer(String serverName, String serverId) {
-        return mcpManagerService.getServer(serverName, serverId);
+        return mcpServerDomainService.getServer(serverName, serverId);
     }
 
     /**
      * 获取所有服务
      */
     public List<McpServer> getAllServers() {
-        return mcpManagerService.getAllServers();
+        return mcpServerDomainService.getAllServers();
     }
 
     // ==================== 监控数据查询方法 ====================
@@ -96,7 +97,7 @@ public class McpServerAppService {
      */
     public List<ServerMonitorSummaryVO> getAllServerSummaries() {
         // 1. 从注册中心获取所有服务
-        List<McpServer> allServers = mcpManagerService.getAllServers();
+        List<McpServer> allServers = mcpServerDomainService.getAllServers();
 
         // 2. 遍历每个服务，查询对应的监控指标并组装
         return allServers.stream()
@@ -126,7 +127,7 @@ public class McpServerAppService {
      */
     public ServerDetailVO getServerDetailVO(String serverName, String serverId) {
         // 1. 从注册中心获取服务信息
-        McpServer server = mcpManagerService.getServer(serverName, serverId);
+        McpServer server = mcpServerDomainService.getServer(serverName, serverId);
 
         if (server == null) {
             return null;

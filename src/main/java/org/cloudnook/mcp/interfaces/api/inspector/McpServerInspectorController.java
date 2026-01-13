@@ -3,9 +3,9 @@ package org.cloudnook.mcp.interfaces.api.inspector;
 
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
-import org.cloudnook.mcp.application.service.McpInspectorAppService;
-import org.cloudnook.mcp.domain.model.inspector.ToolInvocationRecord;
-import org.cloudnook.mcp.infrastruction.common.result.Result;
+import org.cloudnook.mcp.application.service.McpInvokeAppService;
+import org.cloudnook.mcp.domain.log.model.McpInvokeLog;
+import org.cloudnook.mcp.infrastructure.common.result.Result;
 import org.cloudnook.mcp.interfaces.dto.inspector.PromptGetRequest;
 import org.cloudnook.mcp.interfaces.dto.inspector.ToolCallRequest;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +19,15 @@ import java.util.List;
  * @Date: 2026-01-10
  * @Description: MCP Server Inspector 调试接口
  * 提供类似 MCP Inspector 的调试能力
+ *
+ * 注意：这是调试入口，用户直接指定 serverId
  */
 @RestController
 @RequestMapping("/inspector")
 @RequiredArgsConstructor
 public class McpServerInspectorController {
 
-    private final McpInspectorAppService mcpInspectorAppService;
+    private final McpInvokeAppService mcpInvokeAppService;
 
     // ==================== 资源列表查询 ====================
 
@@ -34,7 +36,7 @@ public class McpServerInspectorController {
      */
     @GetMapping("/{serverId}/tools/list")
     public Mono<Result<McpSchema.ListToolsResult>> listTools(@PathVariable String serverId) {
-        return mcpInspectorAppService.listTools(serverId)
+        return mcpInvokeAppService.listTools(serverId, McpInvokeLog.InvokeSource.INSPECTOR)
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -44,7 +46,7 @@ public class McpServerInspectorController {
      */
     @GetMapping("/{serverId}/resources/list")
     public Mono<Result<McpSchema.ListResourcesResult>> listResources(@PathVariable String serverId) {
-        return mcpInspectorAppService.listResources(serverId)
+        return mcpInvokeAppService.listResources(serverId, McpInvokeLog.InvokeSource.INSPECTOR)
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -54,7 +56,7 @@ public class McpServerInspectorController {
      */
     @GetMapping("/{serverId}/prompts/list")
     public Mono<Result<McpSchema.ListPromptsResult>> listPrompts(@PathVariable String serverId) {
-        return mcpInspectorAppService.listPrompts(serverId)
+        return mcpInvokeAppService.listPrompts(serverId, McpInvokeLog.InvokeSource.INSPECTOR)
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -69,7 +71,13 @@ public class McpServerInspectorController {
             @PathVariable String serverId,
             @RequestBody ToolCallRequest request
     ) {
-        return mcpInspectorAppService.callTool(serverId, request.getToolName(), request.getArguments())
+        return mcpInvokeAppService.callTool(
+                    serverId,
+                    request.getToolName(),
+                    request.getArguments(),
+                    McpInvokeLog.InvokeSource.INSPECTOR,
+                    null
+                )
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -78,7 +86,7 @@ public class McpServerInspectorController {
 
     /**
      * 读取 Resource
-     * 
+     *
      * 示例: GET /inspector/{serverId}/resources/read?uri=greeting://theway
      */
     @GetMapping("/{serverId}/resources/read")
@@ -86,7 +94,7 @@ public class McpServerInspectorController {
             @PathVariable String serverId,
             @RequestParam String uri
     ) {
-        return mcpInspectorAppService.readResource(serverId, uri)
+        return mcpInvokeAppService.readResource(serverId, uri, McpInvokeLog.InvokeSource.INSPECTOR)
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -101,7 +109,12 @@ public class McpServerInspectorController {
             @PathVariable String serverId,
             @RequestBody PromptGetRequest request
     ) {
-        return mcpInspectorAppService.getPrompt(serverId, request.getPromptName(), request.getArguments())
+        return mcpInvokeAppService.getPrompt(
+                    serverId,
+                    request.getPromptName(),
+                    request.getArguments(),
+                    McpInvokeLog.InvokeSource.INSPECTOR
+                )
                 .map(Result::success)
                 .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
     }
@@ -112,25 +125,25 @@ public class McpServerInspectorController {
      * 查询调用历史（全局）
      */
     @GetMapping("/history")
-    public Result<List<ToolInvocationRecord>> getHistory(
+    public Result<List<McpInvokeLog>> getHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        List<ToolInvocationRecord> history = mcpInspectorAppService.getHistory(page, size);
-        return Result.success(history);
+        // TODO: 实现查询逻辑
+        return Result.success(List.of());
     }
 
     /**
      * 查询指定服务的调用历史
      */
     @GetMapping("/{serverId}/history")
-    public Result<List<ToolInvocationRecord>> getHistoryByServerId(
+    public Result<List<McpInvokeLog>> getHistoryByServerId(
             @PathVariable String serverId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        List<ToolInvocationRecord> history = mcpInspectorAppService.getHistoryByServerId(serverId, page, size);
-        return Result.success(history);
+        // TODO: 实现查询逻辑
+        return Result.success(List.of());
     }
 
     /**
@@ -138,7 +151,7 @@ public class McpServerInspectorController {
      */
     @DeleteMapping("/history")
     public Result<Void> clearHistory() {
-        mcpInspectorAppService.clearHistory();
+        // TODO: 实现清空逻辑
         return Result.success();
     }
 }

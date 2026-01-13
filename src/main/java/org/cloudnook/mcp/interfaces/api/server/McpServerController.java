@@ -1,11 +1,10 @@
 package org.cloudnook.mcp.interfaces.api.server;
 
-import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.cloudnook.mcp.application.service.McpServerAppService;
-import org.cloudnook.mcp.domain.model.server.McpServer;
-import org.cloudnook.mcp.domain.model.shared.McpTransportType;
-import org.cloudnook.mcp.infrastruction.common.result.Result;
+import org.cloudnook.mcp.domain.server.model.McpServer;
+import org.cloudnook.mcp.domain.server.model.McpTransportType;
+import org.cloudnook.mcp.infrastructure.common.result.Result;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;

@@ -4,12 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
-import org.cloudnook.mcp.domain.model.server.McpServer;
-import org.cloudnook.mcp.domain.model.shared.HealthStatus;
-import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
+import org.cloudnook.mcp.domain.metrics.model.McpServerMetrics;
+import org.cloudnook.mcp.domain.server.model.McpServer;
+import org.cloudnook.mcp.domain.server.model.HealthStatus;
+import org.cloudnook.mcp.domain.server.model.McpServerStatus;
 
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 /**

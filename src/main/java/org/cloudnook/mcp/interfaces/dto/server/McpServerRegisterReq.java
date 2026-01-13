@@ -2,7 +2,7 @@ package org.cloudnook.mcp.interfaces.dto.server;
 
 
 import lombok.Data;
-import org.cloudnook.mcp.domain.model.shared.McpTransportType;
+import org.cloudnook.mcp.domain.server.model.McpTransportType;
 
 /**
  * @Author: the-way

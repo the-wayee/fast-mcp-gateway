@@ -2,9 +2,7 @@ package org.cloudnook.mcp.interfaces.api.monitor;
 
 import lombok.RequiredArgsConstructor;
 import org.cloudnook.mcp.application.service.McpServerAppService;
-import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
-import org.cloudnook.mcp.domain.model.server.McpServer;
-import org.cloudnook.mcp.infrastruction.common.result.Result;
+import org.cloudnook.mcp.infrastructure.common.result.Result;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerDetailVO;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerMonitorSummaryVO;
 import org.springframework.web.bind.annotation.*;

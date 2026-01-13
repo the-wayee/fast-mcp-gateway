@@ -97,5 +97,15 @@ public class McpManagerService {
     public List<McpServer> getAllServers() {
         return mcpRegister.getAllServers();
     }
+
+    /**
+     * 根据服务ID获取服务
+     *
+     * @param serverId 服务ID
+     * @return 服务实例
+     */
+    public McpServer getServerById(String serverId) {
+        return mcpRegister.getServerById(serverId);
+    }
 }
 

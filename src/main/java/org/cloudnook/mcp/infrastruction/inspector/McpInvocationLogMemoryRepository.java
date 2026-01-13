@@ -80,6 +80,29 @@ public class McpInvocationLogMemoryRepository implements McpInvocationLogReposit
     }
 
     /**
+     * 根据服务ID分页获取日志记录
+     *
+     * @param serverId 服务ID
+     * @param page     页码（从0开始）
+     * @param size     每页大小
+     * @return 分页后的日志记录
+     */
+    public List<ToolInvocationRecord> getPageByServerId(String serverId, int page, int size) {
+        // 过滤出指定服务的日志记录
+        List<ToolInvocationRecord> filtered = logs.stream()
+                .filter(log -> serverId.equals(log.getServerId()))
+                .toList();
+
+        // 分页
+        int start = page * size;
+        if (start >= filtered.size()) {
+            return Collections.emptyList();
+        }
+        int end = Math.min(start + size, filtered.size());
+        return filtered.subList(start, end);
+    }
+
+    /**
      * 清空日志
      */
     public void clear() {

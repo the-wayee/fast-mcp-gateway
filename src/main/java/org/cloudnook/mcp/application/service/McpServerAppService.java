@@ -10,6 +10,7 @@ import org.cloudnook.mcp.domain.service.server.McpMetricsRepository;
 import org.cloudnook.mcp.domain.service.server.McpRegister;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.cloudnook.mcp.infrastruction.utils.GeneratorUtil;
+import org.cloudnook.mcp.interfaces.dto.monitor.ServerDetailVO;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerMonitorSummaryVO;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,7 @@ public class McpServerAppService {
                 .description(request.getDescription())
                 .transportType(request.getTransportType())
                 .endpoint(request.getEndpoint())
+                .version(request.getVersion()) // 添加版本号
                 .status(McpServerStatus.ACTIVE).build();
 
         // 3. 注册到注册中心
@@ -113,6 +115,28 @@ public class McpServerAppService {
      */
     public McpServerMetrics getServerDetail(String serverId) {
         return metricsRepository.getServerMetrics(serverId);
+    }
+
+    /**
+     * 获取单个服务详情VO（合并服务信息和监控指标）
+     *
+     * @param serverName 服务名称
+     * @param serverId   服务ID
+     * @return 服务详情VO
+     */
+    public ServerDetailVO getServerDetailVO(String serverName, String serverId) {
+        // 1. 从注册中心获取服务信息
+        McpServer server = mcpManagerService.getServer(serverName, serverId);
+
+        if (server == null) {
+            return null;
+        }
+
+        // 2. 获取监控指标
+        McpServerMetrics metrics = metricsRepository.getServerMetrics(serverId);
+
+        // 3. 组装详情VO
+        return ServerDetailVO.from(server, metrics);
     }
 }
 

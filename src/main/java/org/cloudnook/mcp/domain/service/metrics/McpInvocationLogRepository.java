@@ -43,6 +43,16 @@ public interface McpInvocationLogRepository {
     List<ToolInvocationRecord> getPage(int page, int size);
 
     /**
+     * 根据服务ID分页获取调用日志
+     *
+     * @param serverId 服务ID
+     * @param page     页码（从0开始）
+     * @param size     每页大小
+     * @return 分页后的调用日志
+     */
+    List<ToolInvocationRecord> getPageByServerId(String serverId, int page, int size);
+
+    /**
      * 清空调用日志
      */
     void clear();

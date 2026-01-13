@@ -113,8 +113,15 @@ public class McpServerMetrics {
      * @return 健康状态
      */
     public HealthStatus getHealthStatus() {
-        // 新注册或无数据
+        // 新注册或无数据，判断是否有心跳记录
         if (totalRequests == null || totalRequests == 0) {
+            // 如果有心跳记录且是最近的（1分钟内），认为是健康的
+            if (lastHeartbeat != null) {
+                long secondsSinceHeartbeat = Instant.now().getEpochSecond() - lastHeartbeat.getEpochSecond();
+                if (secondsSinceHeartbeat < 60) {
+                    return HealthStatus.HEALTHY;
+                }
+            }
             return HealthStatus.UNKNOWN;
         }
 

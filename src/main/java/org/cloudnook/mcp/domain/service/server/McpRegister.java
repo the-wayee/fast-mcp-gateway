@@ -42,4 +42,12 @@ public interface McpRegister {
      */
     List<McpServer> getAllServers();
 
+    /**
+     * 根据服务ID获取服务
+     *
+     * @param serverId 服务ID
+     * @return 服务实例
+     */
+    McpServer getServerById(String serverId);
+
 }

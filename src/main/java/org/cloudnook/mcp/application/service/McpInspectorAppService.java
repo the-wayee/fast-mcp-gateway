@@ -162,6 +162,18 @@ public class McpInspectorAppService {
     }
 
     /**
+     * 根据服务ID获取调用历史（分页）
+     *
+     * @param serverId 服务ID
+     * @param page     页码（从0开始）
+     * @param size     每页大小
+     * @return 调用历史记录
+     */
+    public List<ToolInvocationRecord> getHistoryByServerId(String serverId, int page, int size) {
+        return mcpInvocationLogRepository.getPageByServerId(serverId, page, size);
+    }
+
+    /**
      * 清空调用历史
      */
     public void clearHistory() {

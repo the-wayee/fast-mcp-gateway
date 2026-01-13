@@ -109,7 +109,7 @@ public class McpServerInspectorController {
     // ==================== 调用历史 ====================
 
     /**
-     * 查询调用历史
+     * 查询调用历史（全局）
      */
     @GetMapping("/history")
     public Result<List<ToolInvocationRecord>> getHistory(
@@ -117,6 +117,19 @@ public class McpServerInspectorController {
             @RequestParam(defaultValue = "20") int size
     ) {
         List<ToolInvocationRecord> history = mcpInspectorAppService.getHistory(page, size);
+        return Result.success(history);
+    }
+
+    /**
+     * 查询指定服务的调用历史
+     */
+    @GetMapping("/{serverId}/history")
+    public Result<List<ToolInvocationRecord>> getHistoryByServerId(
+            @PathVariable String serverId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        List<ToolInvocationRecord> history = mcpInspectorAppService.getHistoryByServerId(serverId, page, size);
         return Result.success(history);
     }
 

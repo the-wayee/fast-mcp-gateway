@@ -50,7 +50,7 @@ export function ServerCard({ server }: ServerCardProps) {
   const StatusIcon = status.icon
 
   return (
-    <Link href={`/server/${server.serverId}`}>
+    <Link href={`/server/${server.serverId}?serverName=${encodeURIComponent(server.serverName)}`}>
       <Card className="p-5 hover:bg-accent/50 transition-colors group cursor-pointer">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">

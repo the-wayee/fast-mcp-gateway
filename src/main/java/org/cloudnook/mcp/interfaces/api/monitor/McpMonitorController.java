@@ -3,7 +3,9 @@ package org.cloudnook.mcp.interfaces.api.monitor;
 import lombok.RequiredArgsConstructor;
 import org.cloudnook.mcp.application.service.McpServerAppService;
 import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
+import org.cloudnook.mcp.domain.model.server.McpServer;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
+import org.cloudnook.mcp.interfaces.dto.monitor.ServerDetailVO;
 import org.cloudnook.mcp.interfaces.dto.monitor.ServerMonitorSummaryVO;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,18 +40,22 @@ public class McpMonitorController {
     /**
      * 获取单个服务完整监控数据（详情页展示）
      *
-     * @param serverId 服务ID
+     * @param serverId   服务ID
+     * @param serverName 服务名称
      * @return 完整监控数据
      */
     @GetMapping("/{serverId}/detail")
-    public Result<McpServerMetrics> getMonitorDetail(@PathVariable String serverId) {
-        McpServerMetrics metrics = mcpServerAppService.getServerDetail(serverId);
+    public Result<ServerDetailVO> getMonitorDetail(
+            @PathVariable String serverId,
+            @RequestParam String serverName
+    ) {
+        ServerDetailVO detail = mcpServerAppService.getServerDetailVO(serverName, serverId);
 
-        if (metrics == null) {
-            return Result.error("服务监控数据不存在: " + serverId);
+        if (detail == null) {
+            return Result.error("服务不存在: " + serverName + "/" + serverId);
         }
 
-        return Result.success(metrics);
+        return Result.success(detail);
     }
 
 }

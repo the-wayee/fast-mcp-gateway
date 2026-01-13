@@ -50,4 +50,9 @@ public class McpServer {
      */
     private String endpoint;
 
+    /**
+     * 版本号（可选）
+     */
+    private String version;
+
 }

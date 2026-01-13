@@ -28,6 +28,7 @@ export function AddServerDialog() {
     description: "",
     transportType: "STREAMABLE_HTTP",
     endpoint: "",
+    version: "1.0.0",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +45,7 @@ export function AddServerDialog() {
         description: "",
         transportType: "STREAMABLE_HTTP",
         endpoint: "",
+        version: "1.0.0",
       })
       // Refresh the page
       window.location.reload()
@@ -114,6 +116,15 @@ export function AddServerDialog() {
                 value={serverData.endpoint}
                 onChange={(e) => setServerData({ ...serverData, endpoint: e.target.value })}
                 required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="version">Version</Label>
+              <Input
+                id="version"
+                placeholder="1.0.0"
+                value={serverData.version}
+                onChange={(e) => setServerData({ ...serverData, version: e.target.value })}
               />
             </div>
           </div>

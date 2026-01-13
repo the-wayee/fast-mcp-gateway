@@ -116,6 +116,19 @@ public class McpMemoryRegister implements McpRegister {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public McpServer getServerById(String serverId) {
+        if (serverId == null) {
+            throw new BusinessException("服务ID不能为空");
+        }
+
+        return MCP_SERVER_HOLDER.values().stream()
+                .flatMap(List::stream)
+                .filter(server -> serverId.equals(server.getId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("服务未找到: " + serverId));
+    }
+
     /**
      * 清空所有注册信息（主要用于测试）
      */

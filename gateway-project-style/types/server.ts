@@ -34,6 +34,42 @@ export interface ServerMonitorSummary {
 }
 
 /**
+ * 服务详情（详情页展示）
+ * 对应后端 ServerDetailVO
+ */
+export interface ServerDetail {
+    // 服务基本信息
+    serverId: string
+    serverName: string
+    description: string
+    status: McpServerStatus
+    healthStatus: HealthStatus
+    transportType: string
+    endpoint: string
+    version?: string
+    registerTime: string
+    uptime: string
+
+    // 请求指标
+    totalRequests: number
+    successRequests: number
+    failedRequests: number
+    successRate: number
+    failureRate: number
+
+    // 延迟指标
+    avgLatency: number
+    minLatency: number
+    maxLatency: number
+
+    // 时间指标
+    lastHeartbeat: string
+
+    // 连接数
+    activeConnections?: number
+}
+
+/**
  * 服务完整监控数据（详情页展示）
  * 对应后端 McpServerMetrics
  */
@@ -56,3 +92,4 @@ export interface ServerMonitorDetail {
     registerTime: string
     uptime: number
 }
+

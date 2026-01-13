@@ -58,35 +58,6 @@ public class McpServerController {
         return Result.success(servers);
     }
 
-    // ==================== 资源查询接口 ====================
-
-    /**
-     * 获取 Server 的 Tools 列表
-     */
-    @GetMapping("/{serverId}/tools")
-    public Mono<Result<McpSchema.ListToolsResult>> listTools(@PathVariable String serverId) {
-        return mcpServerAppService.listServerTools(serverId)
-                .map(Result::success);
-    }
-
-    /**
-     * 获取 Server 的 Resources 列表
-     */
-    @GetMapping("/{serverId}/resources")
-    public Mono<Result<McpSchema.ListResourcesResult>> listResources(@PathVariable String serverId) {
-        return mcpServerAppService.listServerResources(serverId)
-                .map(Result::success);
-    }
-
-    /**
-     * 获取 Server 的 Prompts 列表
-     */
-    @GetMapping("/{serverId}/prompts")
-    public Mono<Result<McpSchema.ListPromptsResult>> listPrompts(@PathVariable String serverId) {
-        return mcpServerAppService.listServerPrompts(serverId)
-                .map(Result::success);
-    }
-
     /**
      * 获取传输类型
      */

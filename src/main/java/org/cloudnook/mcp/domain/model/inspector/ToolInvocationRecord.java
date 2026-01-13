@@ -76,8 +76,11 @@ public class ToolInvocationRecord {
      */
     public enum InvocationType {
         TOOL_CALL,
+        TOOL_LIST,
         RESOURCE_READ,
-        PROMPT_GET
+        RESOURCE_LIST,
+        PROMPT_GET,
+        PROMPT_LIST
     }
 
     /**

@@ -1,79 +1,33 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ServerCard } from "@/components/server-card"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-
-const servers = [
-  {
-    id: "1",
-    name: "filesystem",
-    description: "Local filesystem access and operations",
-    status: "healthy" as const,
-    url: "stdio://localhost:3001",
-    requests: 1247,
-    latency: 12,
-    uptime: 99.9,
-  },
-  {
-    id: "2",
-    name: "database",
-    description: "PostgreSQL database interface",
-    status: "healthy" as const,
-    url: "http://localhost:3002",
-    requests: 3421,
-    latency: 45,
-    uptime: 99.5,
-  },
-  {
-    id: "3",
-    name: "github",
-    description: "GitHub API integration",
-    status: "warning" as const,
-    url: "http://localhost:3003",
-    requests: 892,
-    latency: 234,
-    uptime: 98.2,
-  },
-  {
-    id: "4",
-    name: "slack",
-    description: "Slack workspace integration",
-    status: "healthy" as const,
-    url: "http://localhost:3004",
-    requests: 567,
-    latency: 89,
-    uptime: 99.8,
-  },
-  {
-    id: "5",
-    name: "analytics",
-    description: "Data analytics and reporting",
-    status: "error" as const,
-    url: "http://localhost:3005",
-    requests: 124,
-    latency: 0,
-    uptime: 0,
-  },
-  {
-    id: "6",
-    name: "memory",
-    description: "In-memory key-value store",
-    status: "healthy" as const,
-    url: "stdio://localhost:3006",
-    requests: 8234,
-    latency: 3,
-    uptime: 100,
-  },
-]
+import httpClient, { type ActionResult } from "@/lib/http-client"
+import { type ServerMonitorSummary } from "@/types/server"
 
 export function ServerGrid() {
+  const [servers, setServers] = useState<ServerMonitorSummary[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+
+  useEffect(() => {
+    // 获取所有服务监控摘要
+    httpClient.get<ActionResult<ServerMonitorSummary[]>>("/monitors/summary")
+      .then(response => {
+        setServers(response.data.data)
+        setLoading(false)
+      })
+      .catch(error => {
+        console.error("Failed to fetch servers:", error)
+        setLoading(false)
+      })
+  }, [])
 
   const filteredServers = servers.filter(
     (server) =>
-      server.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      server.serverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       server.description.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
@@ -92,16 +46,24 @@ export function ServerGrid() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredServers.map((server) => (
-          <ServerCard key={server.id} server={server} />
-        ))}
-      </div>
-
-      {filteredServers.length === 0 && (
+      {loading ? (
         <div className="text-center py-12 text-muted-foreground">
-          <p>No servers found matching your search.</p>
+          <p>Loading servers...</p>
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredServers.map((server) => (
+              <ServerCard key={server.serverId} server={server} />
+            ))}
+          </div>
+
+          {filteredServers.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No servers found matching your search.</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

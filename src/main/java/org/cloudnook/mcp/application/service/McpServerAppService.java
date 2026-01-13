@@ -1,14 +1,16 @@
 package org.cloudnook.mcp.application.service;
 
-import io.modelcontextprotocol.spec.McpSchema;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cloudnook.mcp.domain.model.metrics.McpServerMetrics;
 import org.cloudnook.mcp.domain.model.server.McpServer;
 import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
-import org.cloudnook.mcp.domain.service.resource.McpResourceService;
 import org.cloudnook.mcp.domain.service.server.McpManagerService;
+import org.cloudnook.mcp.domain.service.server.McpMetricsRepository;
+import org.cloudnook.mcp.domain.service.server.McpRegister;
 import org.cloudnook.mcp.infrastruction.common.result.Result;
 import org.cloudnook.mcp.infrastruction.utils.GeneratorUtil;
+import org.cloudnook.mcp.interfaces.dto.monitor.ServerMonitorSummaryVO;
 import org.cloudnook.mcp.interfaces.dto.server.McpServerRegisterReq;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -30,9 +32,14 @@ public class McpServerAppService {
     private McpManagerService mcpManagerService;
 
     /**
-     * MCP 资源查询服务
+     * MCP 监控指标仓储
      */
-    private McpResourceService mcpResourceService;
+    private McpMetricsRepository metricsRepository;
+
+    /**
+     * MCP 注册中心
+     */
+    private McpRegister mcpRegister;
 
     /**
      * 注册服务
@@ -78,36 +85,34 @@ public class McpServerAppService {
         return mcpManagerService.getAllServers();
     }
 
-    // ==================== 资源查询方法 ====================
+    // ==================== 监控数据查询方法 ====================
 
     /**
-     * 获取 Server 的 Tools 列表
+     * 获取所有服务监控概览（列表展示）
      *
-     * @param serverId 服务ID
-     * @return Tools 列表
+     * @return 服务监控概览列表
      */
-    public Mono<McpSchema.ListToolsResult> listServerTools(String serverId) {
-        return mcpResourceService.listTools(serverId);
+    public List<ServerMonitorSummaryVO> getAllServerSummaries() {
+        // 1. 从注册中心获取所有服务
+        List<McpServer> allServers = mcpManagerService.getAllServers();
+
+        // 2. 遍历每个服务，查询对应的监控指标并组装
+        return allServers.stream()
+                .map(server -> {
+                    McpServerMetrics metrics = metricsRepository.getServerMetrics(server.getId());
+                    return ServerMonitorSummaryVO.from(server, metrics);
+                })
+                .toList();
     }
 
     /**
-     * 获取 Server 的 Resources 列表
+     * 获取单个服务完整监控数据（详情页展示）
      *
      * @param serverId 服务ID
-     * @return Resources 列表
+     * @return 完整监控指标
      */
-    public Mono<McpSchema.ListResourcesResult> listServerResources(String serverId) {
-        return mcpResourceService.listResources(serverId);
-    }
-
-    /**
-     * 获取 Server 的 Prompts 列表
-     *
-     * @param serverId 服务ID
-     * @return Prompts 列表
-     */
-    public Mono<McpSchema.ListPromptsResult> listServerPrompts(String serverId) {
-        return mcpResourceService.listPrompts(serverId);
+    public McpServerMetrics getServerDetail(String serverId) {
+        return metricsRepository.getServerMetrics(serverId);
     }
 }
 

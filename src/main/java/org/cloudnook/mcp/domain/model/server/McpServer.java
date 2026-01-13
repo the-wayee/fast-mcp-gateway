@@ -7,6 +7,13 @@ import lombok.NoArgsConstructor;
 import org.cloudnook.mcp.domain.model.shared.McpServerStatus;
 import org.cloudnook.mcp.domain.model.shared.McpTransportType;
 
+/**
+ * MCP 服务实体
+ * 只存储服务的基本信息，不包含监控数据
+ *
+ * @Author: the-way
+ * @Date: 2026-01-09
+ */
 @Data
 @Builder
 @AllArgsConstructor

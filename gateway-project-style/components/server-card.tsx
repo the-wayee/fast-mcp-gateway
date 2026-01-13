@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreVertical, Activity, Clock, TrendingUp, AlertCircle, CheckCircle2, XCircle } from "lucide-react"
+import { MoreVertical, Activity, Clock, TrendingUp, AlertCircle, CheckCircle2, XCircle, HelpCircle } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,49 +12,45 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-
-interface Server {
-  id: string
-  name: string
-  description: string
-  status: "healthy" | "warning" | "error"
-  url: string
-  requests: number
-  latency: number
-  uptime: number
-}
+import { type ServerMonitorSummary, type HealthStatus } from "@/types/server"
 
 interface ServerCardProps {
-  server: Server
+  server: ServerMonitorSummary
 }
 
 const statusConfig = {
-  healthy: {
+  HEALTHY: {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-500/10",
     label: "Healthy",
   },
-  warning: {
+  DEGRADED: {
     icon: AlertCircle,
     color: "text-yellow-500",
     bg: "bg-yellow-500/10",
-    label: "Warning",
+    label: "Degraded",
   },
-  error: {
+  UNHEALTHY: {
     icon: XCircle,
     color: "text-red-500",
     bg: "bg-red-500/10",
-    label: "Error",
+    label: "Unhealthy",
+  },
+  UNKNOWN: {
+    icon: HelpCircle,
+    color: "text-gray-500",
+    bg: "bg-gray-500/10",
+    label: "Unknown",
   },
 }
 
 export function ServerCard({ server }: ServerCardProps) {
-  const status = statusConfig[server.status]
+  const status = statusConfig[server.healthStatus]
   const StatusIcon = status.icon
 
   return (
-    <Link href={`/server/${server.id}`}>
+    <Link href={`/server/${server.serverId}`}>
       <Card className="p-5 hover:bg-accent/50 transition-colors group cursor-pointer">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -62,7 +58,7 @@ export function ServerCard({ server }: ServerCardProps) {
               <StatusIcon className={`w-4 h-4 ${status.color}`} />
             </div>
             <div>
-              <h3 className="font-semibold font-mono text-sm">{server.name}</h3>
+              <h3 className="font-semibold font-mono text-sm">{server.serverName}</h3>
               <Badge variant="outline" className="mt-1 text-xs">
                 {status.label}
               </Badge>
@@ -93,7 +89,7 @@ export function ServerCard({ server }: ServerCardProps) {
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{server.description}</p>
 
         <div className="text-xs font-mono text-muted-foreground mb-4 p-2 bg-muted rounded border border-border">
-          {server.url}
+          {server.endpoint}
         </div>
 
         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border">
@@ -102,21 +98,21 @@ export function ServerCard({ server }: ServerCardProps) {
               <Activity className="w-3 h-3" />
               <span className="text-xs">Requests</span>
             </div>
-            <p className="text-sm font-semibold">{server.requests.toLocaleString()}</p>
+            <p className="text-sm font-semibold">{server.totalRequests.toLocaleString()}</p>
           </div>
           <div>
             <div className="flex items-center gap-1 text-muted-foreground mb-1">
               <Clock className="w-3 h-3" />
               <span className="text-xs">Latency</span>
             </div>
-            <p className="text-sm font-semibold">{server.latency}ms</p>
+            <p className="text-sm font-semibold">{server.avgLatency.toFixed(0)}ms</p>
           </div>
           <div>
             <div className="flex items-center gap-1 text-muted-foreground mb-1">
               <TrendingUp className="w-3 h-3" />
-              <span className="text-xs">Uptime</span>
+              <span className="text-xs">Success</span>
             </div>
-            <p className="text-sm font-semibold">{server.uptime}%</p>
+            <p className="text-sm font-semibold">{server.successRate.toFixed(1)}%</p>
           </div>
         </div>
       </Card>

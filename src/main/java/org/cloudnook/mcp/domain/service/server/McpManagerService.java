@@ -31,6 +31,11 @@ public class McpManagerService {
     private final McpClientManager mcpClientManager;
 
     /**
+     * 监控指标仓储
+     */
+    private final McpMetricsRepository metricsRepository;
+
+    /**
      * 注册
      */
     public Mono<Result<McpServer>> register(McpServer mcpServer) {
@@ -40,6 +45,10 @@ public class McpManagerService {
                     // client 连接成功后注册
                     try {
                         mcpRegister.register(mcpServer);
+
+                        // 初始化监控指标
+                        metricsRepository.initMetrics(mcpServer.getName(), mcpServer.getId());
+
                         return Mono.just(Result.<McpServer>success(mcpServer));
                     }catch (Exception e) {
                         return Mono.just(Result.<McpServer>error(e.getMessage()));
@@ -59,7 +68,14 @@ public class McpManagerService {
         mcpClientManager.disconnect(serverId);
 
         // 注销服务
-        return mcpRegister.unregister(serverName, serverId);
+        McpServer unregistered = mcpRegister.unregister(serverName, serverId);
+
+        // 清除监控指标
+        if (unregistered != null) {
+            metricsRepository.removeMetrics(serverId);
+        }
+
+        return unregistered;
     }
 
     /**

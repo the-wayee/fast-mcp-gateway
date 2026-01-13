@@ -1,6 +1,7 @@
 package org.cloudnook.mcp.infrastruction.inspector;
 
 
+import io.modelcontextprotocol.client.McpAsyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.cloudnook.mcp.domain.service.inspector.McpInspectorService;
@@ -15,12 +16,35 @@ import java.util.Map;
  * @Verson: v1.0
  * @Date: 2026-01-10
  * @Description: MCP Inspector 服务实现
+ * 负责所有 MCP 协议的远程调用
  */
 @Service
 @RequiredArgsConstructor
 public class McpInspectorServiceImpl implements McpInspectorService {
 
     private final McpClientManager mcpClientManager;
+
+    // ==================== 列表查询实现 ====================
+
+    @Override
+    public Mono<McpSchema.ListToolsResult> listTools(String serverId) {
+        return mcpClientManager.getClient(serverId)
+                .flatMap(McpAsyncClient::listTools);
+    }
+
+    @Override
+    public Mono<McpSchema.ListResourcesResult> listResources(String serverId) {
+        return mcpClientManager.getClient(serverId)
+                .flatMap(McpAsyncClient::listResources);
+    }
+
+    @Override
+    public Mono<McpSchema.ListPromptsResult> listPrompts(String serverId) {
+        return mcpClientManager.getClient(serverId)
+                .flatMap(McpAsyncClient::listPrompts);
+    }
+
+    // ==================== 资源调用实现 ====================
 
     @Override
     public Mono<McpSchema.CallToolResult> callTool(String serverId, String toolName, Map<String, Object> arguments) {

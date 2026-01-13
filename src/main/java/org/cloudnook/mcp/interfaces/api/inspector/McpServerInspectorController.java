@@ -27,6 +27,38 @@ public class McpServerInspectorController {
 
     private final McpInspectorAppService mcpInspectorAppService;
 
+    // ==================== 资源列表查询 ====================
+
+    /**
+     * 获取 Server 的 Tools 列表
+     */
+    @GetMapping("/{serverId}/tools/list")
+    public Mono<Result<McpSchema.ListToolsResult>> listTools(@PathVariable String serverId) {
+        return mcpInspectorAppService.listTools(serverId)
+                .map(Result::success)
+                .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
+    }
+
+    /**
+     * 获取 Server 的 Resources 列表
+     */
+    @GetMapping("/{serverId}/resources/list")
+    public Mono<Result<McpSchema.ListResourcesResult>> listResources(@PathVariable String serverId) {
+        return mcpInspectorAppService.listResources(serverId)
+                .map(Result::success)
+                .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
+    }
+
+    /**
+     * 获取 Server 的 Prompts 列表
+     */
+    @GetMapping("/{serverId}/prompts/list")
+    public Mono<Result<McpSchema.ListPromptsResult>> listPrompts(@PathVariable String serverId) {
+        return mcpInspectorAppService.listPrompts(serverId)
+                .map(Result::success)
+                .onErrorResume(e -> Mono.just(Result.error(e.getMessage())));
+    }
+
     // ==================== Tool 调试 ====================
 
     /**

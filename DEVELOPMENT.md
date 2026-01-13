@@ -613,3 +613,459 @@ GET    /api/v1/debug/history       # 调用历史
 **文档版本**: v2.0
 **最后更新**: 2026-01-08
 **维护者**: Fast MCP Gateway Team
+
+---
+
+## 11. 已实现功能清单 (2026-01-13)
+
+### 11.1 服务注册与管理 ✅
+
+#### 实现的接口
+- `POST /api/servers` - 注册服务
+  - 支持参数：name, description, transportType, endpoint, version (默认1.0.0)
+  - 返回：McpServer 对象
+  - 功能：验证连接、注册到中心、初始化监控指标
+
+- `DELETE /api/servers` - 注销服务
+  - 参数：serverName, serverId
+  - 功能：断开连接、移除注册、清除监控数据
+
+- `GET /api/servers` - 获取所有服务
+  - 返回：List<McpServer>
+
+- `GET /api/servers/protocols` - 获取支持的传输类型
+  - 返回：STDIO, SSE, STREAMABLE_HTTP
+
+#### 数据模型
+**McpServer** (服务基本信息)
+- id (serverId) - 唯一标识
+- name - 服务名称
+- description - 描述
+- status - ACTIVE/INACTIVE/CONNECTING/DISCONNECTED
+- transportType - 传输类型
+- endpoint - 连接地址
+- **version - 版本号 (新增)**
+
+### 11.2 服务监控 ✅
+
+#### 实现的接口
+- `GET /api/monitors/summary` - 服务监控摘要
+  - 用途：首页列表展示
+  - 返回：List<ServerMonitorSummaryVO>
+  - 包含：基本信息 + 关键指标
+
+- `GET /api/monitors/{serverId}/detail?serverName={name}` - 服务详情
+  - 用途：详情页展示
+  - 返回：ServerDetailVO
+  - 包含：完整服务信息 + 完整监控指标
+
+#### 监控指标 (McpServerMetrics)
+
+**请求指标：**
+- totalRequests - 总请求数
+- successRequests - 成功请求数
+- failedRequests - 失败请求数
+
+**延迟指标：**
+- avgLatency - 平均延迟（毫秒）
+- minLatency - 最小延迟（毫秒）
+- maxLatency - 最大延迟（毫秒）
+
+**时间指标：**
+- registerTime - 注册时间
+- lastHeartbeat - 最后心跳时间
+- uptime - 运行时长（秒）
+
+**计算指标：**
+- successRate - 成功率 (%)
+- failureRate - 失败率 (%)
+- healthStatus - 健康状态 (自动计算)
+
+#### 健康状态判断逻辑
+```java
+HEALTHY: 成功率 ≥ 95% 且延迟 < 200ms
+         或：刚注册（lastHeartbeat < 60秒）
+
+DEGRADED: 成功率 80%-95% 或延迟 200-500ms
+
+UNHEALTHY: 成功率 < 80% 或延迟 > 500ms
+
+UNKNOWN: 无数据或心跳超过1分钟
+```
+
+### 11.3 Inspector 调试功能 ✅
+
+#### 实现的接口
+
+**资源列表查询：**
+- `GET /api/inspector/{serverId}/tools/list`
+- `GET /api/inspector/{serverId}/resources/list`
+- `GET /api/inspector/{serverId}/prompts/list`
+
+**资源调用调试：**
+- `POST /api/inspector/{serverId}/tools/call`
+- `GET /api/inspector/{serverId}/resources/read?uri={uri}`
+- `POST /api/inspector/{serverId}/prompts/get`
+
+**调用历史：**
+- `GET /api/inspector/history?page=0&size=20` - 全局历史
+- `GET /api/inspector/{serverId}/history?page=0&size=20` - 指定服务历史
+- `DELETE /api/inspector/history` - 清空历史
+
+#### 监控集成
+所有 Inspector 操作都会记录：
+- 成功/失败状态
+- 延迟统计
+- 调用历史
+- 自动更新监控指标
+
+### 11.4 前端页面 ✅
+
+#### Dashboard (首页)
+- **路由**: `/`
+- **组件**: `ServerGrid`
+- **功能**: 
+  - 展示所有服务卡片
+  - 显示健康状态、请求数、延迟、成功率
+  - 支持搜索过滤
+  - 点击卡片跳转详情页
+
+#### 服务详情页
+- **路由**: `/server/{serverId}?serverName={name}`
+- **组件**:
+  - `ServerDetails` - 服务基本信息
+    - 服务名称、描述、状态
+    - 端点、协议、版本、运行时长
+  
+  - `ServerMetrics` - 监控指标
+    - 4个关键指标：Total Requests, Avg Latency, Success Rate, Active Connections
+    - 6个详细指标：Success/Failed Requests, Min/Max Latency, Failure Rate, Uptime
+  
+  - `ServerLogs` - 调用历史 (待对接)
+  - `ServerActions` - 操作按钮 (待实现)
+
+#### 服务注册
+- **组件**: `AddServerDialog`
+- **功能**: 
+  - 表单输入：name, description, transportType, endpoint, version
+  - 默认版本：1.0.0
+  - 注册成功后刷新页面
+
+### 11.5 数据流 ✅
+
+#### 注册流程
+```
+前端表单 
+  → POST /api/servers 
+  → McpServerAppService.registerServer()
+  → McpManagerService.register()
+  → McpClientManager.connect() [连接验证]
+  → McpRegister.register() [注册到中心]
+  → McpMetricsRepository.initMetrics() [初始化监控]
+  → 返回成功
+```
+
+#### 监控流程
+```
+McpInspectorAppService 调用
+  → mcpInspectorService.xxx() [执行调用]
+  → .doOnSuccess() 
+  → monitoringService.recordSuccess() 
+  → 记录日志 + 更新指标
+```
+
+#### 查询流程
+```
+前端请求
+  → GET /api/monitors/summary
+  → McpServerAppService.getAllServerSummaries()
+  → 查询所有服务
+  → 查询每个服务的监控指标
+  → 组装 ServerMonitorSummaryVO
+  → 返回前端
+```
+
+---
+
+## 12. 待开发功能 (按优先级) 🚧
+
+### 12.1 高优先级 (P0)
+
+#### 1. ServerLogs 组件对接 ⭐⭐⭐
+**需求**: 显示服务调用历史记录
+
+**实现方案**:
+```typescript
+// components/server-logs.tsx
+useEffect(() => {
+  httpClient.get<ActionResult<ToolInvocationRecord[]>>(
+    `/inspector/${serverId}/history?page=0&size=20`
+  )
+  .then(response => {
+    setLogs(response.data.data)
+  })
+}, [serverId])
+```
+
+**待添加功能**:
+- 日志级别显示 (info/warn/error)
+- 时间格式化
+- 分页加载
+- 实时刷新
+
+#### 2. ServerActions 功能实现 ⭐⭐⭐
+**需求**: 服务操作按钮功能
+
+**需要实现的接口**:
+- `POST /api/servers/{serverId}/start` - 启动服务
+- `POST /api/servers/{serverId}/stop` - 停止服务
+- `POST /api/servers/{serverId}/restart` - 重启服务
+- `DELETE /api/servers/{serverId}` - 删除服务
+
+**实现要点**:
+- 调用 `McpClientManager.connect()` 和 `disconnect()`
+- 更新服务状态 (ACTIVE ↔ INACTIVE)
+- 前端确认对话框
+- 操作成功后刷新页面
+
+#### 3. 活跃连接数追踪 ⭐⭐
+**需求**: 实时追踪服务活跃连接数
+
+**实现方案**:
+```java
+// McpServerMetrics 新增
+private Integer activeConnections;
+
+// McpClientManager 维护连接计数
+private ConcurrentHashMap<String, AtomicInteger> connectionCounter;
+
+public void incrementConnections(String serverId) {
+    connectionCounter.computeIfAbsent(serverId, k -> new AtomicInteger(0)).incrementAndGet();
+}
+
+public void decrementConnections(String serverId) {
+    connectionCounter.computeIfPresent(serverId, (k, v) -> {
+        int count = v.decrementAndGet();
+        return count <= 0 ? null : v;
+    });
+}
+
+// 获取当前连接数
+public int getConnections(String serverId) {
+    AtomicInteger counter = connectionCounter.get(serverId);
+    return counter != null ? counter.get() : 0;
+}
+```
+
+### 12.2 中优先级 (P1)
+
+#### 4. 心跳更新服务 ⭐⭐
+**需求**: 定期更新服务心跳和运行时长
+
+**实现方案**:
+```java
+@Component
+public class HeartbeatScheduler {
+    
+    @Scheduled(fixedRate = 30000) // 每30秒
+    public void updateHeartbeat() {
+        List<McpServer> servers = mcpRegister.getAllServers();
+        for (McpServer server : servers) {
+            if (server.getStatus() == McpServerStatus.ACTIVE) {
+                metricsRepository.updateHeartbeat(server.getId());
+                
+                // 更新运行时长
+                McpServerMetrics metrics = metricsRepository.getServerMetrics(server.getId());
+                if (metrics != null && metrics.getRegisterTime() != null) {
+                    long uptime = Instant.now().getEpochSecond() - metrics.getRegisterTime().getEpochSecond();
+                    metrics.setUptime(uptime);
+                }
+            }
+        }
+    }
+}
+```
+
+#### 5. 监控数据趋势 ⭐
+**需求**: 显示指标变化趋势 (如 "+12.5%")
+
+**实现方案**:
+- 新增 `MetricsSnapshot` 实体存储历史快照
+- 定时任务（每分钟）保存快照
+- 计算当前值与上个快照的变化率
+
+```java
+@Entity
+public class MetricsSnapshot {
+    private String snapshotId;
+    private String serverId;
+    private Long snapshotTime;
+    private Long totalRequests;
+    private Double avgLatency;
+    private Double successRate;
+}
+
+// 计算变化率
+public MetricsTrend calculateTrend(String serverId) {
+    MetricsSnapshot current = getLatestSnapshot(serverId);
+    MetricsSnapshot previous = getPreviousSnapshot(serverId);
+    
+    double requestChange = calculateChange(
+        current.getTotalRequests(), 
+        previous.getTotalRequests()
+    );
+    
+    return new MetricsTrend(requestChange, /* ... */);
+}
+```
+
+#### 6. 日志级别区分 ⭐
+**需求**: 为调用记录添加日志级别 (info/warn/error)
+
+**实现方案**:
+```java
+// ToolInvocationRecord 新增
+public enum LogLevel {
+    INFO, WARN, ERROR
+}
+
+// 自动判断级别
+private LogLevel determineLevel(Throwable error, long latency) {
+    if (error != null) return LogLevel.ERROR;
+    if (latency > 500) return LogLevel.WARN;
+    return LogLevel.INFO;
+}
+
+// ServerLogs 组件按级别显示不同颜色
+const levelColors = {
+  info: "text-blue-500",
+  warn: "text-yellow-500", 
+  error: "text-red-500"
+};
+```
+
+### 12.3 低优先级 (P2)
+
+#### 7. 服务健康检查 ⭐
+**需求**: 定期健康检查，自动剔除不健康的服务
+
+**实现方案**:
+```java
+@Scheduled(fixedRate = 60000) // 每分钟
+public void healthCheck() {
+    List<McpServer> servers = mcpRegister.getAllServers();
+    for (McpServer server : servers) {
+        McpServerMetrics metrics = metricsRepository.getServerMetrics(server.getId());
+        HealthStatus status = metrics.getHealthStatus();
+        
+        if (status == HealthStatus.UNHEALTHY) {
+            // 尝试重连
+            mcpManagerService.reconnect(server.getId());
+        }
+    }
+}
+```
+
+#### 8. 监控数据持久化 ⭐
+**需求**: 将监控数据存储到 Redis/MySQL
+
+**实现方案**:
+```java
+@Repository
+public class McpRedisMetrics implements McpMetricsRepository {
+    @Autowired
+    private RedisTemplate<String, McpServerMetrics> redisTemplate;
+    
+    private static final String KEY_PREFIX = "mcp:metrics:";
+    
+    public void saveMetrics(String serverId, McpServerMetrics metrics) {
+        redisTemplate.opsForValue().set(
+            KEY_PREFIX + serverId, 
+            metrics, 
+            Duration.ofDays(7) // 7天过期
+        );
+    }
+}
+```
+
+#### 9. 负载均衡支持 ⭐
+**需求**: 同一服务名支持多实例，自动负载均衡
+
+**实现方案**:
+```java
+public interface LoadBalancer {
+    McpServer select(String serverName);
+}
+
+// 轮询实现
+public class RoundRobinLoadBalancer implements LoadBalancer {
+    private final ConcurrentHashMap<String, AtomicInteger> counters = new ConcurrentHashMap<>();
+    
+    public McpServer select(String serverName) {
+        List<McpServer> servers = mcpRegister.getServersByName(serverName);
+        int index = counters.computeIfAbsent(serverName, k -> new AtomicInteger(0))
+                          .getAndIncrement() % servers.size();
+        return servers.get(index);
+    }
+}
+```
+
+#### 10. 实时数据推送 (WebSocket) ⭐
+**需求**: 使用 WebSocket 推送实时监控数据
+
+**实现方案**:
+```java
+@Controller
+public class McpWebSocketController {
+    
+    @MessageMapping("/subscribe/monitors")
+    @SendTo("/topic/monitors")
+    public List<ServerMonitorSummaryVO> broadcastMetrics() {
+        return mcpServerAppService.getAllServerSummaries();
+    }
+}
+
+// 前端订阅
+const ws = new WebSocket('ws://localhost:9000/ws')
+ws.onmessage = (message) => {
+    const metrics = JSON.parse(message.data)
+    setServers(metrics)
+}
+```
+
+#### 11. 告警功能 ⭐
+**需求**: 监控指标异常时发送告警
+
+**实现方案**:
+- 定义告警规则（成功率 < 80%，延迟 > 500ms）
+- 支持多种告警渠道（邮件、钉钉、Slack）
+- 告警去重和限流
+
+---
+
+## 13. 技术债务与改进建议
+
+### 13.1 当前限制
+1. **内存存储**: 监控指标、日志都存在内存中，重启丢失
+2. **无认证授权**: API 没有认证机制
+3. **错误处理不完善**: 部分异常情况未处理
+4. **测试覆盖不足**: 缺少单元测试和集成测试
+5. **文档待完善**: API 文档、部署文档需要补充
+
+### 13.2 性能优化建议
+1. **连接池管理**: 实现连接复用，避免频繁建立连接
+2. **缓存层**: 添加 Redis 缓存热点数据
+3. **异步处理**: 日志记录、指标更新使用异步队列
+4. **分页优化**: 大数据量查询使用游标分页
+
+### 13.3 安全建议
+1. **API 认证**: 添加 JWT 或 API Key 认证
+2. **权限控制**: RBAC 角色权限控制
+3. **输入验证**: 严格验证所有用户输入
+4. **敏感数据加密**: endpoint、密钥等敏感信息加密存储
+
+---
+
+**文档版本**: v3.0  
+**最后更新**: 2026-01-13  
+**维护者**: Fast MCP Gateway Team
